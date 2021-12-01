@@ -3,6 +3,7 @@ import glob
 
 import time
 
+import itertools
 
 # read one int per line from file
 def read_ints(fname):
@@ -12,20 +13,10 @@ def read_ints(fname):
 # Day 1
 
 def get_increases(data):
-    prev = data[0]
-    cnt = 0
-    for d in data[1:]:
-        if d > prev:
-            cnt += 1
-        prev = d
-    return cnt
-
+    return sum(map(lambda x: x[0] < x[1], itertools.pairwise(data)))
 
 def sliding_window(data):
-    window_data = []
-    for i in range(0, len(data) - 2):
-        window_data.append(sum(data[i: i+3]))
-    return window_data
+    return [sum(data[i: i+3]) for i in range(0, len(data) - 2)]
 
 class Day1Test(unittest.TestCase):
     data = [199,
