@@ -9,6 +9,8 @@ def read_ints(fname):
     return [int(line) for line in open(fname)]
 
 
+# Day 1
+
 def get_increases(data):
     prev = data[0]
     cnt = 0
@@ -19,31 +21,38 @@ def get_increases(data):
     return cnt
 
 
+def sliding_window(data):
+    window_data = []
+    for i in range(0, len(data) - 2):
+        window_data.append(sum(data[i: i+3]))
+    return window_data
+
 class Day1Test(unittest.TestCase):
+    data = [199,
+            200,
+            208,
+            210,
+            200,
+            207,
+            240,
+            269,
+            260,
+            263]
 
     def test_get_increases(self):
-        data = [199,
-                200,
-                208,
-                210,
-                200,
-                207,
-                240,
-                269,
-                260,
-                263]
-        pairs = get_increases(data)
-        self.assertEqual(7, pairs)
+        self.assertEqual(7, get_increases(self.data))
 
+    def test_sliding_window(self):
+        self.assertEqual([607,618,618,617,647,716,769,792], sliding_window(self.data))
 
-# sea floor sonar -
+# sea floor sonar
 def day1():
     data = read_ints('day1input.txt')
 
     start_time = time.time()
 
     task1 = get_increases(data)
-    task2 = None
+    task2 = get_increases(sliding_window(data))
 
     return time.time() - start_time, task1, task2
 
