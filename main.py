@@ -47,6 +47,44 @@ def day1():
 
     return time.time() - start_time, task1, task2
 
+# pilot the sub
+
+def move_sub(pos, data):
+    for dir in data:
+        if dir[0] == 'forward':
+            x = int(dir[1])
+            pos[0] += x
+            pos[2] += x * pos[1]
+        elif dir[0] == 'down':
+            pos[1] += int(dir[1])
+        elif dir[0] == 'up':
+            pos[1] -= int(dir[1])
+
+    return pos
+
+class Day2Test(unittest.TestCase):
+    data = [['forward', '5'],
+            ['down', '5'],
+            ['forward', '8'],
+            ['up', '3'],
+            ['down', '8'],
+            ['forward', '2']]
+
+    def test_get_increases(self):
+        self.assertEqual([15, 10, 60], move_sub([0, 0, 0], self.data))
+
+def day2():
+    data = [line.split() for line in open('day2input.txt')]
+
+    start_time = time.time()
+
+    pos = move_sub([0, 0, 0], data)
+    task1 = pos[0] * pos[1]
+    task2 = pos[0] * pos[2]
+
+    return time.time() - start_time, task1, task2
+
+
 
 def run(day):
     run_time, task1, task2 = day()
@@ -62,5 +100,5 @@ def run_tests():
 
 if __name__ == '__main__':
     run_tests()
-    for i in range(1, 2):
+    for i in range(1, 3):
         run(eval("day" + str(i)))
