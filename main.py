@@ -50,17 +50,18 @@ def day1():
 # pilot the sub
 
 def move_sub(pos, data):
-    for dir in data:
-        if dir[0] == 'forward':
-            x = int(dir[1])
-            pos[0] += x
-            pos[2] += x * pos[1]
-        elif dir[0] == 'down':
-            pos[1] += int(dir[1])
-        elif dir[0] == 'up':
-            pos[1] -= int(dir[1])
+    new_pos = pos.copy()
+    for direction in data:
+        x = int(direction[1])
+        if direction[0] == 'forward':
+            new_pos[0] += x
+            new_pos[2] += x * new_pos[1]
+        elif direction[0] == 'down':
+            new_pos[1] += x
+        elif direction[0] == 'up':
+            new_pos[1] -= x
 
-    return pos
+    return new_pos
 
 class Day2Test(unittest.TestCase):
     data = [['forward', '5'],
@@ -71,7 +72,9 @@ class Day2Test(unittest.TestCase):
             ['forward', '2']]
 
     def test_get_increases(self):
-        self.assertEqual([15, 10, 60], move_sub([0, 0, 0], self.data))
+        pos = [0, 0, 0]
+        self.assertEqual([15, 10, 60], move_sub(pos, self.data))
+        self.assertEqual([0, 0, 0], pos)
 
 def day2():
     data = [line.split() for line in open('day2input.txt')]
