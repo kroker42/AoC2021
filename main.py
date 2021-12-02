@@ -4,6 +4,7 @@ import glob
 import time
 
 import itertools
+import operator
 
 # read one int per line from file
 def read_ints(fname):
@@ -52,7 +53,7 @@ def day1():
 def move_sub(pos, data):
     new_pos = pos.copy()
     for direction in data:
-        x = int(direction[1])
+        x = direction[1]
         if direction[0] == 'forward':
             new_pos[0] += x
             new_pos[2] += x * new_pos[1]
@@ -64,12 +65,12 @@ def move_sub(pos, data):
     return new_pos
 
 class Day2Test(unittest.TestCase):
-    data = [['forward', '5'],
-            ['down', '5'],
-            ['forward', '8'],
-            ['up', '3'],
-            ['down', '8'],
-            ['forward', '2']]
+    data = [['forward', 5],
+            ['down', 5],
+            ['forward', 8],
+            ['up', 3],
+            ['down', 8],
+            ['forward', 2]]
 
     def test_get_increases(self):
         pos = [0, 0, 0]
@@ -78,6 +79,10 @@ class Day2Test(unittest.TestCase):
 
 def day2():
     data = [line.split() for line in open('day2input.txt')]
+    data = map(lambda x: (x[0], int(x[1])), data)
+
+    # cute - but it doubles the running time from 0.0003 s to 0.0007 s :-D
+    # data = map(lambda x: (x[0], int(x[1])), map(operator.methodcaller("split"), open('day2input.txt')))
 
     start_time = time.time()
 
