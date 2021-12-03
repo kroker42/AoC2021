@@ -94,6 +94,8 @@ def scrub_list(common, pos, data):
         if data[i][pos] == most_common:
             if common:
                 keepers.append(i)
+        elif not common:
+            keepers.append(i)
     return [data[p] for p in keepers]
 
 def scrub(common, data):
@@ -128,11 +130,15 @@ class Day3Test(unittest.TestCase):
         epsilon = ''.join('1' if x == '0' else '0' for x in gamma)
         self.assertEqual(9, int(epsilon, 2))
 
-    def test_scrub(self):
+    def test_oxygen_scrub(self):
         self.assertEqual(['11110', '10110', '10111', '10101', '11100', '10000', '11001'],
                          scrub_list(True, 0, self.data))
         self.assertEqual(['10111'], scrub(True, self.data))
 
+    def test_co2_scrub(self):
+        self.assertEqual(['00100', '01111', '00111', '00010', '01010'],
+                         scrub_list(False, 0, self.data))
+        self.assertEqual(['01010'], scrub(False, self.data))
 
 def day3():
     data = [line.strip() for line in open("day3input.txt")]
