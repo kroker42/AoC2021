@@ -104,7 +104,7 @@ def scrub(common, data):
     for i in range(0, len(data[0])):
         scrubbed_data = scrub_list(common, i, scrubbed_data)
         if len(scrubbed_data) == 1:
-            return scrubbed_data
+            return scrubbed_data[0]
 
 
 class Day3Test(unittest.TestCase):
@@ -133,12 +133,12 @@ class Day3Test(unittest.TestCase):
     def test_oxygen_scrub(self):
         self.assertEqual(['11110', '10110', '10111', '10101', '11100', '10000', '11001'],
                          scrub_list(True, 0, self.data))
-        self.assertEqual(['10111'], scrub(True, self.data))
+        self.assertEqual('10111', scrub(True, self.data))
 
     def test_co2_scrub(self):
         self.assertEqual(['00100', '01111', '00111', '00010', '01010'],
                          scrub_list(False, 0, self.data))
-        self.assertEqual(['01010'], scrub(False, self.data))
+        self.assertEqual('01010', scrub(False, self.data))
 
 def day3():
     data = [line.strip() for line in open("day3input.txt")]
@@ -147,9 +147,11 @@ def day3():
 
     gamma = ''.join([check_frequency(i, data) for i in range(0, len(data[0]))])
     epsilon = ''.join('1' if x == '0' else '0' for x in gamma)
-
     task1 = int(gamma, 2) * int(epsilon, 2)
-    task2 = None
+
+    oxygen = scrub(True, data)
+    co2 = scrub(False, data)
+    task2 = int(oxygen, 2) * int(co2, 2)
 
     return time.time() - start_time, task1, task2
 
