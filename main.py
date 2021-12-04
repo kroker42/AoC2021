@@ -174,12 +174,14 @@ def mark_board(num, board):
 
     return False
 
+def score_board(board):
+    return sum([x if x > 0 else 0 for x in itertools.chain.from_iterable(board)])
 
 def bingo(drawn, boards):
     for d in drawn:
         for board in boards:
             if mark_board(d, board):
-                return board
+                return d, board
 
 
 class Day4Test(unittest.TestCase):
@@ -205,7 +207,7 @@ class Day4Test(unittest.TestCase):
         [2  ,0, 12 , 3 , 7]]
     ]
 
-    def test_mark_board_line(self):
+    def test_mark_board_row(self):
         board = self.boards[0].copy()
         self.assertFalse(mark_board(22, board))
         self.assertEqual(-1, board[0][0])
@@ -215,7 +217,7 @@ class Day4Test(unittest.TestCase):
         self.assertTrue(mark_board(0, board))
         self.assertEqual([-1] * 5, board[0])
 
-    def test_mark_board_line(self):
+    def test_mark_board_col(self):
         board = self.boards[0].copy()
         mark_board(13, board)
         mark_board(2, board)
@@ -224,11 +226,34 @@ class Day4Test(unittest.TestCase):
         self.assertTrue(mark_board(12, board))
         self.assertEqual([-1] * 5, [row[1] for row in board])
 
+    def test_bingo(self):
+        num, winner = bingo(self.data, self.boards)
+        self.assertEqual(24, num)
+        self.assertEqual([[-1] * 5,
+        [10 ,16 ,15 , -1 ,19],
+        [18 , 8 ,-1 ,26 ,20],
+        [22 ,-1, 13 , 6 , -1],
+        [-1 ,-1, 12 , 3 , -1]], winner)
+
+    def test_score(self):
+        self.assertEqual(188, score_board(self.boards[2]))
+
 def day4():
     data = [line.split() for line in open('day4input.txt')]
+    drawn = [int(d) for d in data[0][0].split(',')]
+    boards = []
+
+    for line in data[1:]:
+        if not line:
+            boards.append([])
+        else:
+            boards[-1].append([int(d) for d in line])
+
+
     start_time = time.time()
 
-    task1 = None
+    num, winner = bingo(drawn, boards)
+    task1 = num * score_board(winner)
     task2 = None
 
     return time.time() - start_time, task1, task2
