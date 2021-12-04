@@ -165,7 +165,7 @@ def day3():
 def mark_board(num, board):
     for i in range(0, len(board)):
         board[i] = [-1 if x == num else x for x in board[i]]
-        if sum(board[0]) == -5:
+        if sum(board[i]) == -5:
             return True
 
     for i in range(0, len(board[0])):
@@ -182,6 +182,19 @@ def bingo(drawn, boards):
         for board in boards:
             if mark_board(d, board):
                 return d, board
+
+def last_winner(drawn, boards):
+    winners = {i: 0 for i in range(0, len(boards))}
+
+    for d in drawn:
+        for i, won in winners.items():
+            if not won and mark_board(d, boards[i]):
+                winners[i] = d
+
+        if list(winners.values()).count(0) == 0:
+            for x in reversed(drawn):
+                if x in winners.values():
+                    return x, list(winners.keys())[list(winners.values()).index(x)]
 
 
 class Day4Test(unittest.TestCase):
@@ -227,16 +240,20 @@ class Day4Test(unittest.TestCase):
         self.assertEqual([-1] * 5, [row[1] for row in board])
 
     def test_bingo(self):
-        num, winner = bingo(self.data, self.boards)
+        num, winner = bingo(self.data, [b.copy() for b in self.boards])
         self.assertEqual(24, num)
         self.assertEqual([[-1] * 5,
         [10 ,16 ,15 , -1 ,19],
         [18 , 8 ,-1 ,26 ,20],
         [22 ,-1, 13 , 6 , -1],
         [-1 ,-1, 12 , 3 , -1]], winner)
+        self.assertEqual(188, score_board(winner))
 
-    def test_score(self):
-        self.assertEqual(188, score_board(self.boards[2]))
+    def test_last_winner(self):
+        d, winner = last_winner(self.data, [b.copy() for b in self.boards])
+        self.assertEqual(13, d)
+        self.assertEqual(1, winner)
+
 
 def day4():
     data = [line.split() for line in open('day4input.txt')]
@@ -254,7 +271,9 @@ def day4():
 
     num, winner = bingo(drawn, boards)
     task1 = num * score_board(winner)
-    task2 = None
+
+    last_num, last = last_winner(drawn, boards)
+    task2 = last_num * score_board(boards[last])
 
     return time.time() - start_time, task1, task2
 
