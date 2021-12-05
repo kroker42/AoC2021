@@ -4,6 +4,8 @@ import glob
 import time
 
 import itertools
+from collections import namedtuple
+
 
 # read one int per line from file
 def read_ints(fname):
@@ -28,6 +30,7 @@ class Day1Test(unittest.TestCase):
 
     def test_sliding_window(self):
         self.assertEqual([607, 618, 618, 617, 647, 716, 769, 792], sliding_window(self.data))
+
 
 def day1():
     data = read_ints('day1input.txt')
@@ -160,6 +163,7 @@ def day3():
 
     return time.time() - start_time, task1, task2
 
+
 # Day 4 - Squid Bingo
 
 def mark_board(num, board):
@@ -174,14 +178,17 @@ def mark_board(num, board):
 
     return False
 
+
 def score_board(board):
     return sum([x if x > 0 else 0 for x in itertools.chain.from_iterable(board)])
+
 
 def bingo(drawn, boards):
     for d in drawn:
         for board in boards:
             if mark_board(d, board):
                 return d, board
+
 
 def last_winner(drawn, boards):
     winners = {i: 0 for i in range(0, len(boards))}
@@ -198,26 +205,25 @@ def last_winner(drawn, boards):
 
 
 class Day4Test(unittest.TestCase):
-
-    data = [7,4,9,5,11,17,23,2,0,14,21,24,10,16,13,6,15,25,12,22,18,20,8,19,3,26,1]
+    data = [7, 4, 9, 5, 11, 17, 23, 2, 0, 14, 21, 24, 10, 16, 13, 6, 15, 25, 12, 22, 18, 20, 8, 19, 3, 26, 1]
     boards = [
-        [[22, 13 ,17 ,11 , 0],
-        [8,  2 ,23 , 4, 24],
-        [21,  9, 14 ,16  ,7],
-        [6 ,10,  3 ,18  ,5],
-        [1 ,12, 20 ,15 ,19]],
+        [[22, 13, 17, 11, 0],
+         [8, 2, 23, 4, 24],
+         [21, 9, 14, 16, 7],
+         [6, 10, 3, 18, 5],
+         [1, 12, 20, 15, 19]],
 
-        [[3 ,15 , 0 , 2 ,22],
-        [9 ,18 ,13, 17  ,5],
-        [19,  8 , 7, 25 ,23],
-        [20, 11 ,10 ,24  ,4],
-        [14, 21 ,16 ,12  ,6]],
+        [[3, 15, 0, 2, 22],
+         [9, 18, 13, 17, 5],
+         [19, 8, 7, 25, 23],
+         [20, 11, 10, 24, 4],
+         [14, 21, 16, 12, 6]],
 
-        [[14, 21 ,17, 24 , 4],
-        [10 ,16 ,15 , 9 ,19],
-        [18 , 8 ,23 ,26 ,20],
-        [22 ,11, 13 , 6 , 5],
-        [2  ,0, 12 , 3 , 7]]
+        [[14, 21, 17, 24, 4],
+         [10, 16, 15, 9, 19],
+         [18, 8, 23, 26, 20],
+         [22, 11, 13, 6, 5],
+         [2, 0, 12, 3, 7]]
     ]
 
     def test_mark_board_row(self):
@@ -243,10 +249,10 @@ class Day4Test(unittest.TestCase):
         num, winner = bingo(self.data, [b.copy() for b in self.boards])
         self.assertEqual(24, num)
         self.assertEqual([[-1] * 5,
-        [10 ,16 ,15 , -1 ,19],
-        [18 , 8 ,-1 ,26 ,20],
-        [22 ,-1, 13 , 6 , -1],
-        [-1 ,-1, 12 , 3 , -1]], winner)
+                          [10, 16, 15, -1, 19],
+                          [18, 8, -1, 26, 20],
+                          [22, -1, 13, 6, -1],
+                          [-1, -1, 12, 3, -1]], winner)
         self.assertEqual(188, score_board(winner))
 
     def test_last_winner(self):
@@ -266,16 +272,104 @@ def day4():
         else:
             boards[-1].append([int(d) for d in line])
 
-
     start_time = time.time()
 
     num, winner = bingo(drawn, boards)
     task1 = num * score_board(winner)
 
-    last_num, last = last_winner(drawn, boards)
+    last_num, last = last_winner(drawn[drawn.index(num) + 1:], boards)
     task2 = last_num * score_board(boards[last])
 
     return time.time() - start_time, task1, task2
+
+
+# Day 5 - Vent labyrinth
+
+pt = namedtuple('pt', 'x y')
+vent = namedtuple('vent', 'pt1 pt2')
+
+def vents(str):
+    x, y = [p.strip().split(',') for p in str.split('->')]
+    return vent(pt(int(x[0]), int(x[1])), pt(int(y[0]), int(y[1])))
+
+def vent_map(grid):
+    m = {}
+    for v in grid:
+        if v.pt1.x == v.pt2.x:
+            step = -1 if v.pt1.y > v.pt2.y else 1
+            for y in range(v.pt1.y, v.pt2.y + step, step):
+                p = pt(v.pt1.x, y)
+                if p in m:
+                    m[p] += 1
+                else:
+                    m[p] = 1
+        elif v.pt1.y == v.pt2.y:
+            step = -1 if v.pt1.x > v.pt2.x else 1
+            for x in range(v.pt1.x, v.pt2.x + step, step):
+                p = pt(x, v.pt1.y)
+                if p in m:
+                    m[p] += 1
+                else:
+                    m[p] = 1
+
+    return m
+
+def vent_map_3D(grid, m):
+    for v in grid:
+        if v.pt1.x != v.pt2.x and v.pt1.y != v.pt2.y:
+            x_step = -1 if v.pt1.x > v.pt2.x else 1
+            y_step = -1 if v.pt1.y > v.pt2.y else 1
+            y = v.pt1.y
+            for x in range(v.pt1.x, v.pt2.x + x_step, x_step):
+                p = pt(x, y)
+                y += y_step
+                if p in m:
+                    m[p] += 1
+                else:
+                    m[p] = 1
+
+    return m
+
+class Day5Test(unittest.TestCase):
+    input = ['0,9 -> 5,9',
+            '8,0 -> 0,8',
+            '9,4 -> 3,4',
+            '2,2 -> 2,1',
+            '7,0 -> 7,4',
+            '6,4 -> 2,0',
+            '0,9 -> 2,9',
+            '3,4 -> 1,4',
+            '0,0 -> 8,8',
+            '5,5 -> 8,2']
+
+    grid = [vents(x) for x in input]
+
+    def test_vents(self):
+        self.assertEqual(vent(pt(0, 9), pt(5, 9)), vents(self.input[0]))
+
+    def test_vent_map(self):
+        v = vent_map(self.grid)
+        self.assertEqual(1, v[pt(7, 0)])
+        self.assertEqual(2, v[pt(7, 4)])
+        self.assertEqual(5, list(v.values()).count(2))
+
+        vent_map_3D(self.grid, v)
+        self.assertEqual(1, v[pt(0, 0)])
+        self.assertEqual(12, len(v) - list(v.values()).count(1))
+
+
+
+def day5():
+    data = [vents(line) for line in open('day5input.txt')]
+    start_time = time.time()
+
+    v = vent_map(data)
+    task1 = len(v) - list(v.values()).count(1)
+    vent_map_3D(data, v)
+    task2 = len(v) - list(v.values()).count(1)
+
+    return time.time() - start_time, task1, task2
+
 
 # Day
 
@@ -310,8 +404,5 @@ def run_tests():
 
 if __name__ == '__main__':
     run_tests()
-    for i in range(1, 5):
+    for i in range(1, 6):
         run(eval("day" + str(i)))
-
-
-
