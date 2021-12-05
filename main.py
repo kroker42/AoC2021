@@ -292,43 +292,31 @@ def vents(str):
     x, y = [p.strip().split(',') for p in str.split('->')]
     return vent(pt(int(x[0]), int(x[1])), pt(int(y[0]), int(y[1])))
 
+def add_vent_line(m, v):
+    x_step = -1 if v.pt1.x > v.pt2.x else 1 if v.pt1.x < v.pt2.x else 0
+    y_step = -1 if v.pt1.y > v.pt2.y else 1 if v.pt1.y < v.pt2.y else 0
+
+    no_iter = max(abs(v.pt1.x - v.pt2.x), abs(v.pt1.y - v.pt2.y))
+
+    for i in range(no_iter + 1):
+        p = pt(v.pt1.x + i * x_step, v.pt1.y + i * y_step)
+        m[p] = m[p] + 1 if p in m else 1
+
+
 def vent_map(grid):
     m = {}
     for v in grid:
-        if v.pt1.x == v.pt2.x:
-            step = -1 if v.pt1.y > v.pt2.y else 1
-            for y in range(v.pt1.y, v.pt2.y + step, step):
-                p = pt(v.pt1.x, y)
-                if p in m:
-                    m[p] += 1
-                else:
-                    m[p] = 1
-        elif v.pt1.y == v.pt2.y:
-            step = -1 if v.pt1.x > v.pt2.x else 1
-            for x in range(v.pt1.x, v.pt2.x + step, step):
-                p = pt(x, v.pt1.y)
-                if p in m:
-                    m[p] += 1
-                else:
-                    m[p] = 1
-
+        if v.pt1.x == v.pt2.x or v.pt1.y == v.pt2.y:
+            add_vent_line(m, v)
     return m
+
 
 def vent_map_3D(grid, m):
     for v in grid:
         if v.pt1.x != v.pt2.x and v.pt1.y != v.pt2.y:
-            x_step = -1 if v.pt1.x > v.pt2.x else 1
-            y_step = -1 if v.pt1.y > v.pt2.y else 1
-            y = v.pt1.y
-            for x in range(v.pt1.x, v.pt2.x + x_step, x_step):
-                p = pt(x, y)
-                y += y_step
-                if p in m:
-                    m[p] += 1
-                else:
-                    m[p] = 1
-
+            add_vent_line(m, v)
     return m
+
 
 class Day5Test(unittest.TestCase):
     input = ['0,9 -> 5,9',
@@ -357,6 +345,17 @@ class Day5Test(unittest.TestCase):
         self.assertEqual(1, v[pt(0, 0)])
         self.assertEqual(12, len(v) - list(v.values()).count(1))
 
+    def test_add_vent_line(self):
+        m = {}
+        add_vent_line(m, self.grid[0])
+        self.assertEqual(1, m[pt(0, 9)])
+        self.assertEqual(1, m[pt(5, 9)])
+
+        add_vent_line(m, self.grid[1])
+        self.assertEqual(1, m[pt(8, 0)])
+        self.assertEqual(1, m[pt(6, 2)])
+        self.assertEqual(1, m[pt(0, 8)])
+
 
 
 def day5():
@@ -365,6 +364,7 @@ def day5():
 
     v = vent_map(data)
     task1 = len(v) - list(v.values()).count(1)
+
     vent_map_3D(data, v)
     task2 = len(v) - list(v.values()).count(1)
 
