@@ -424,10 +424,9 @@ def day6():
 
     start_time = time.time()
 
-    fish = data
-    for i in range(80):
-        fish = spawn(fish)
-    task1 = len(fish)
+    # smarter_spawn runs in 0.0007s instead of 0.45s for spawn()
+    fish = smarter_spawn(dict(Counter(data)), 80)
+    task1 = sum(fish.values())
 
     fish = smarter_spawn(dict(Counter(data)), 256)
     task2 = sum(fish.values())
