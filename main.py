@@ -4,7 +4,7 @@ import glob
 import time
 
 import itertools
-from collections import namedtuple
+from collections import namedtuple, Counter
 
 
 # read one int per line from file
@@ -371,6 +371,69 @@ def day5():
     return time.time() - start_time, task1, task2
 
 
+# Day 6 - exponential fish populations
+
+def spawn(fish):
+    new_fish = []
+    for f in fish:
+        new_f = (f-1) % 7 if f < 7 else f-1
+        new_fish.append(new_f)
+        if f == 0:
+            new_fish.append(8)
+    return new_fish
+
+def iter_fish(fish):
+    new_fish = {i: 0 for i in range(9)}
+    for f, n in fish.items():
+        new_f = (f - 1) % 7 if f < 7 else f - 1
+        new_fish[new_f] += n
+        if f == 0:
+            new_fish[8] += n
+
+    return new_fish
+
+def smarter_spawn(fish, days):
+    new_fish = fish
+    for i in range(days):
+        new_fish = iter_fish(new_fish)
+
+    return new_fish
+
+class Day6Test(unittest.TestCase):
+    data = [3, 4, 3, 1, 2]
+
+    def test_spawn(self):
+        fish = self.data
+        for i in range(18):
+            fish = spawn(fish)
+        self.assertEqual(26, len(fish))
+
+        for i in range(18, 80):
+            fish = spawn(fish)
+        self.assertEqual(5934, len(fish))
+
+    def test_smarter_spawn(self):
+        fish = dict(Counter(self.data))
+        self.assertEqual(26, sum(smarter_spawn(fish, 18).values()))
+        self.assertEqual(5934, sum(smarter_spawn(fish, 80).values()))
+
+
+def day6():
+    file = open('day6input.txt')
+    data = [int(x) for x in file.readline().split(',')]
+
+    start_time = time.time()
+
+    fish = data
+    for i in range(80):
+        fish = spawn(fish)
+    task1 = len(fish)
+
+    fish = smarter_spawn(dict(Counter(data)), 256)
+    task2 = sum(fish.values())
+
+    return time.time() - start_time, task1, task2
+
 # Day
 
 class DayTest(unittest.TestCase):
@@ -388,7 +451,6 @@ def day():
 
     return time.time() - start_time, task1, task2
 
-
 def run(day):
     run_time, task1, task2 = day()
     print(day.__name__ + ": %.6s s - " % run_time + str(task1) + " " + str(task2))
@@ -404,5 +466,5 @@ def run_tests():
 
 if __name__ == '__main__':
     run_tests()
-    for i in range(1, 6):
+    for i in range(1, 7):
         run(eval("day" + str(i)))
