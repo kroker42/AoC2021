@@ -433,6 +433,57 @@ def day6():
 
     return time.time() - start_time, task1, task2
 
+# Day 7 - Crab Data Centre
+
+def get_distances(crabs):
+    distances = {}
+    for i in range(len(crabs)):
+        if crabs[i] not in distances:
+            distances[crabs[i]] = 0
+            for c in crabs:
+                distances[crabs[i]] += abs(c - crabs[i])
+
+    return distances
+
+def get_weighted_distances(crabs):
+    min_crab = min(crabs)
+    max_crab = max(crabs)
+    distances = {i : 0 for i in range(min_crab, max_crab + 1)}
+
+    for c in crabs:
+        for i in distances.keys():
+            dist = abs(c - i)
+            distances[i] += dist * (dist + 1) // 2
+
+    return distances
+
+
+class Day7Test(unittest.TestCase):
+
+    data = [16, 1, 2, 0, 4, 2, 7, 1, 2, 14]
+    def test_get_distances(self):
+        distances = get_distances(self.data)
+        self.assertEqual(37, distances[2])
+        self.assertEqual(37, min(distances))
+
+    def test_get_weighted_distances(self):
+        distances = get_weighted_distances(self.data)
+        self.assertEqual(206, distances[2])
+        self.assertEqual(168, min(distances.values()))
+
+
+def day7():
+    file = open('day7input.txt')
+    data = [int(x) for x in file.readline().split(',')]
+
+    start_time = time.time()
+
+    task1 = min(get_distances(data).values())
+    task2 = min(get_weighted_distances(data).values())
+
+    return time.time() - start_time, task1, task2
+
+
 # Day
 
 class DayTest(unittest.TestCase):
@@ -465,5 +516,5 @@ def run_tests():
 
 if __name__ == '__main__':
     run_tests()
-    for i in range(1, 7):
+    for i in range(1, 8):
         run(eval("day" + str(i)))
