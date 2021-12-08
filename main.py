@@ -448,7 +448,7 @@ def get_distances(crabs):
 def get_weighted_distances(crabs):
     min_crab = min(crabs)
     max_crab = max(crabs)
-    distances = {i : 0 for i in range(min_crab, max_crab + 1)}
+    distances = {i: 0 for i in range(min_crab, max_crab + 1)}
 
     for c in crabs:
         for i in distances.keys():
@@ -464,7 +464,7 @@ class Day7Test(unittest.TestCase):
     def test_get_distances(self):
         distances = get_distances(self.data)
         self.assertEqual(37, distances[2])
-        self.assertEqual(37, min(distances))
+        self.assertEqual(37, min(distances.values()))
 
     def test_get_weighted_distances(self):
         distances = get_weighted_distances(self.data)
@@ -480,6 +480,50 @@ def day7():
 
     task1 = min(get_distances(data).values())
     task2 = min(get_weighted_distances(data).values())
+
+    return time.time() - start_time, task1, task2
+
+
+# Day 8 - number display
+
+def get_display_numbers(display):
+    data = []
+    for line in display:
+        data.append([x.strip().split(' ') for x in line.split('|')])
+    return data
+
+def count_output_digits(data):
+    cnt = 0
+    for d in data:
+        cnt += sum(map(lambda x: len(x) in [2, 3, 4, 7], d[1]))
+    return cnt
+
+class Day8Test(unittest.TestCase):
+
+    data = ['be cfbegad cbdgef fgaecd cgeb fdcge agebfd fecdb fabcd edb | fdgacbe cefdb cefbgd gcbe',
+'edbfga begcd cbg gc gcadebf fbgde acbgfd abcde gfcbed gfec | fcgedb cgb dgebacf gc',
+'fgaebd cg bdaec gdafb agbcfd gdcbef bgcad gfac gcb cdgabef | cg cg fdcagb cbg',
+'fbegcd cbd adcefb dageb afcb bc aefdc ecdab fgdeca fcdbega | efabcd cedba gadfec cb',
+'aecbfdg fbg gf bafeg dbefa fcge gcbea fcaegb dgceab fcbdga | gecf egdcabf bgf bfgea',
+'fgeab ca afcebg bdacfeg cfaedg gcfdb baec bfadeg bafgc acf | gebdcfa ecba ca fadegcb',
+'dbcfg fgd bdegcaf fgec aegbdf ecdfab fbedc dacgb gdcebf gf | cefg dcbef fcge gbcadfe',
+'bdfegc cbegaf gecbf dfcage bdacg ed bedf ced adcbefg gebcd | ed bcgafe cdgba cbgef',
+'egadfb cdbfeg cegd fecab cgb gbdefca cg fgcdab egfdb bfceg | gbdfcae bgc cg cgb',
+'gcafb gcf dcaebfg ecagb gf abcdeg gaef cafbge fdbac fegbdc | fgae cfgab fg bagce']
+
+    def test_count_digits(self):
+        data = get_display_numbers(self.data)
+        self.assertEqual(26, count_output_digits(data))
+
+
+def day8():
+    file = open('day8input.txt')
+    data = get_display_numbers(file)
+
+    start_time = time.time()
+
+    task1 = count_output_digits(data)
+    task2 = None
 
     return time.time() - start_time, task1, task2
 
@@ -516,5 +560,5 @@ def run_tests():
 
 if __name__ == '__main__':
     run_tests()
-    for i in range(1, 8):
+    for i in range(1, 9):
         run(eval("day" + str(i)))
