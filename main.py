@@ -498,22 +498,105 @@ def count_output_digits(data):
         cnt += sum(map(lambda x: len(x) in [2, 3, 4, 7], d[1]))
     return cnt
 
+
+def get_segment_map(data):
+    digits = {}
+
+    for d in data:
+        if len(d) in digits.keys():
+            digits[len(d)].append(d)
+        else:
+            digits[len(d)] = [d]
+
+    segment_map = {}
+    segment_map['a'] = set(digits[3][0]) - set(digits[2][0])
+    segment_map['cf'] = set(digits[3][0]).intersection(set(digits[2][0]))
+    segment_map['bd'] = set(digits[4][0]) - segment_map['cf']
+
+    segment_map['abcdf'] = segment_map['cf'].union(segment_map['bd']).union(segment_map['a'])
+
+    segment_map['eg'] = set(digits[7][0]) - segment_map['abcdf']
+
+    for c in digits[6]:
+        diff = set(c) - segment_map['abcdf']
+        if len(diff) == 1:
+            segment_map['g'] = diff
+    segment_map['e'] = segment_map['eg'] - segment_map['g']
+
+    for c in digits[5]:
+        u = set(c) - segment_map['a'].union(segment_map['g']).union(segment_map['bd'])
+        if len(u) == 1:
+            segment_map['f'] = u
+    segment_map['c'] = segment_map['cf'] - segment_map['f']
+
+
+    segment_map['acefg'] = segment_map['cf'].union(segment_map['eg']).union(segment_map['a'])
+    for c in digits[6]:
+        diff = set(c) - segment_map['acefg']
+        if len(diff) == 1:
+            segment_map['b'] = diff
+    segment_map['d'] = segment_map['bd'] - segment_map['b']
+
+    return {segment_map[s].pop(): s for s in segment_map.keys() if len(s) == 1}
+
+
+digit_map = {'cf': '1',
+             'acf': '7',
+             'bcdf': '4',
+             'acdeg': '2',
+             'acdfg': '3',
+             'abdfg': '5',
+             'abdefg': '6',
+             'abcefg': '0',
+             'abcdfg': '9',
+             'abcdefg': '8'}
+
+
+def get_display_number(data):
+    s_m = get_segment_map(data[0])
+    num = []
+    for s in data[1]:
+        d = ''.join(sorted([s_m[c] for c in s]))
+        num.append(digit_map[d])
+
+    return int(''.join(num))
+
+
 class Day8Test(unittest.TestCase):
 
     data = ['be cfbegad cbdgef fgaecd cgeb fdcge agebfd fecdb fabcd edb | fdgacbe cefdb cefbgd gcbe',
-'edbfga begcd cbg gc gcadebf fbgde acbgfd abcde gfcbed gfec | fcgedb cgb dgebacf gc',
-'fgaebd cg bdaec gdafb agbcfd gdcbef bgcad gfac gcb cdgabef | cg cg fdcagb cbg',
-'fbegcd cbd adcefb dageb afcb bc aefdc ecdab fgdeca fcdbega | efabcd cedba gadfec cb',
-'aecbfdg fbg gf bafeg dbefa fcge gcbea fcaegb dgceab fcbdga | gecf egdcabf bgf bfgea',
-'fgeab ca afcebg bdacfeg cfaedg gcfdb baec bfadeg bafgc acf | gebdcfa ecba ca fadegcb',
-'dbcfg fgd bdegcaf fgec aegbdf ecdfab fbedc dacgb gdcebf gf | cefg dcbef fcge gbcadfe',
-'bdfegc cbegaf gecbf dfcage bdacg ed bedf ced adcbefg gebcd | ed bcgafe cdgba cbgef',
-'egadfb cdbfeg cegd fecab cgb gbdefca cg fgcdab egfdb bfceg | gbdfcae bgc cg cgb',
-'gcafb gcf dcaebfg ecagb gf abcdeg gaef cafbge fdbac fegbdc | fgae cfgab fg bagce']
+            'edbfga begcd cbg gc gcadebf fbgde acbgfd abcde gfcbed gfec | fcgedb cgb dgebacf gc',
+            'fgaebd cg bdaec gdafb agbcfd gdcbef bgcad gfac gcb cdgabef | cg cg fdcagb cbg',
+            'fbegcd cbd adcefb dageb afcb bc aefdc ecdab fgdeca fcdbega | efabcd cedba gadfec cb',
+            'aecbfdg fbg gf bafeg dbefa fcge gcbea fcaegb dgceab fcbdga | gecf egdcabf bgf bfgea',
+            'fgeab ca afcebg bdacfeg cfaedg gcfdb baec bfadeg bafgc acf | gebdcfa ecba ca fadegcb',
+            'dbcfg fgd bdegcaf fgec aegbdf ecdfab fbedc dacgb gdcebf gf | cefg dcbef fcge gbcadfe',
+            'bdfegc cbegaf gecbf dfcage bdacg ed bedf ced adcbefg gebcd | ed bcgafe cdgba cbgef',
+            'egadfb cdbfeg cegd fecab cgb gbdefca cg fgcdab egfdb bfceg | gbdfcae bgc cg cgb',
+            'gcafb gcf dcaebfg ecagb gf abcdeg gaef cafbge fdbac fegbdc | fgae cfgab fg bagce']
+
+    displays = get_display_numbers(data)
 
     def test_count_digits(self):
         data = get_display_numbers(self.data)
         self.assertEqual(26, count_output_digits(data))
+
+    def test_get_segment_map(self):
+        s_m = get_segment_map(self.displays[0][0])
+        self.assertEqual(s_m['d'], 'a')
+        self.assertEqual(s_m['g'], 'b')
+        self.assertEqual(s_m['b'], 'c')
+        self.assertEqual(s_m['c'], 'd')
+        self.assertEqual(s_m['a'], 'e')
+        self.assertEqual(s_m['e'], 'f')
+        self.assertEqual(s_m['f'], 'g')
+
+
+    def test_get_display_number(self):
+        data = get_display_numbers(['acedgfb cdfbe gcdfa fbcad dab cefabd cdfgeb eafb cagedb ab | cdfeb fcadb cdfeb cdbaf'])
+        self.assertEqual(5353, get_display_number(data[0]))
+
+        self.assertEqual(61229, sum([get_display_number(d) for d in self.displays]))
 
 
 def day8():
@@ -523,7 +606,7 @@ def day8():
     start_time = time.time()
 
     task1 = count_output_digits(data)
-    task2 = None
+    task2 = sum([get_display_number(d) for d in data])
 
     return time.time() - start_time, task1, task2
 
