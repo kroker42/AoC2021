@@ -630,7 +630,7 @@ def local_minima(m):
                 minima.append(pt(row, col))
     return minima
 
-def find_basin(p, m, seen):
+def find_basin(p, m, seen, rows, cols):
     queue = deque()
     queue.append(p)
 
@@ -642,8 +642,7 @@ def find_basin(p, m, seen):
 
         for n in neighbours:
             p_n = pt(s.x + n.x, s.y + n.y)
-            if p_n.x in range(len(m)) and \
-                    p_n.y in range(len(m[0])) and \
+            if p_n.x in rows and p_n.y in cols and \
                     p_n not in seen and \
                     m[p_n.x][p_n.y] != 9:
                 seen[p_n] = 1
@@ -656,10 +655,15 @@ def find_basin(p, m, seen):
 def find_basins(m):
     sizes = []
     seen = {}
-    for r in range(len(m)):
-        for c in range(len(m[0])):
-            if m[r][c] != 9 and pt(r, c) not in seen:
-                sizes.append(find_basin(pt(r, c), m, seen))
+
+    rows = range(len(m))
+    cols = range(len(m[0]))
+
+    for r in rows:
+        for c in cols:
+            p = pt(r, c)
+            if m[r][c] != 9 and p not in seen:
+                sizes.append(find_basin(p, m, seen, rows, cols))
     return sizes
 
 
