@@ -3,7 +3,9 @@ import glob
 
 import time
 
+import operator
 import itertools
+import statistics
 from collections import namedtuple, Counter
 
 
@@ -492,6 +494,7 @@ def get_display_numbers(display):
         data.append([x.strip().split(' ') for x in line.split('|')])
     return data
 
+
 def count_output_digits(data):
     cnt = 0
     for d in data:
@@ -529,7 +532,6 @@ def get_segment_map(data):
             segment_map['f'] = u
     segment_map['c'] = segment_map['cf'] - segment_map['f']
 
-
     segment_map['acefg'] = segment_map['cf'].union(segment_map['eg']).union(segment_map['a'])
     for c in digits[6]:
         diff = set(c) - segment_map['acefg']
@@ -556,9 +558,7 @@ def get_display_number(data):
     s_m = get_segment_map(data[0])
     num = []
     for s in data[1]:
-        d = ''.join(sorted([s_m[c] for c in s]))
-        num.append(digit_map[d])
-
+        num.append(digit_map[''.join(sorted([s_m[c] for c in s]))])
     return int(''.join(num))
 
 
@@ -611,6 +611,144 @@ def day8():
     return time.time() - start_time, task1, task2
 
 
+# Day 9 - local minima
+
+neighbours = [pt(-1, 0), pt(1, 0), pt(0, -1), pt(0, 1)]
+
+def local_minima(m):
+    minima = []
+
+    for row in range(len(m)):
+        for col in range(len(m[0])):
+            x = m[row][col]
+            min = True
+            for n in neighbours:
+                if len(m) > row + n.x >= 0 and len(m[0]) > col + n.y >= 0 and x >= m[row + n.x][col + n.y]:
+                    min = False
+                    break
+            if min:
+                minima.append(pt(row, col))
+    return minima
+
+def find_basin(p, m):
+    basin = set()
+    for n in neighbours:
+        if len(m) > p.x + n.x >= 0 and len(m[0]) > p.y + n.y >= 0 and m[p.x + n.x][p.y + n.y] != 9:
+            basin.add(pt(*tuple(map(operator.add, p, n))))
+    return basin
+
+def find_basins(minima, m):
+    return None
+
+
+
+
+class Day9Test(unittest.TestCase):
+    data = ['2199943210',
+            '3987894921',
+            '9856789892',
+            '8767896789',
+            '9899965678']
+    matrix = [[int(x) for x in list(row)] for row in data]
+
+    def test_local_minima(self):
+        self.assertEqual([1, 0, 5, 5], [self.matrix[p.x][p.y] for p in local_minima(self.matrix)])
+
+    def test_find_basin(self):
+        self.assertEqual(2, len(find_basin(pt(0, 0), self.matrix)))
+        self.assertEqual(4, len(find_basin(pt(2, 4), self.matrix)))
+
+def day9():
+    data = [line.strip() for line in open('day9input.txt')]
+    matrix = [[int(x) for x in list(row)] for row in data]
+    start_time = time.time()
+
+    minima = local_minima(matrix)
+    task1 = sum([matrix[p.x][p.y] for p in minima]) + len(minima)
+    task2 = None
+
+    return time.time() - start_time, task1, task2
+
+
+# Day 10 - syntax checker
+delims = {')': '(', '}': '{', '>': '<', ']': '['}
+
+def parse(line):
+    stack = []
+    for c in line:
+        if c in delims.keys():
+            if len(stack) == 0 or delims[c] != stack.pop():
+                return 'corrupted', c
+        else:
+            stack.append(c)
+
+    return 'incomplete', stack
+
+error_scores = {')': 3, '}': 1197, '>': 25137, ']': 57}
+error_scores_incomplete = {'(': 1, '[': 2, '{': 3, '<': 4}
+
+def score_incomplete(stacks):
+    print(stacks)
+    scores = []
+    for stack in stacks:
+        score2 = 0
+        for d in reversed(stack):
+            score2 = score2 * 5 + error_scores_incomplete[d]
+        scores.append(score2)
+    return scores
+
+class Day10Test(unittest.TestCase):
+    data = ['[({(<(())[]>[[{[]{<()<>>',
+            '[(()[<>])]({[<{<<[]>>(',
+            '{([(<{}[<>[]}>{[]{[(<()>',
+            '(((({<>}<{<{<>}{[]{[]{}',
+            '[[<[([]))<([[{}[[()]]]',
+            '[{[{({}]{}}([{[{{{}}([]',
+            '{<[[]]>}<{[{[{[]{()[[[]',
+            '[<(<(<(<{}))><([]([]()',
+            '<{([([[(<>()){}]>(<<{{',
+            '<{([{{}}[<[[[<>{}]]]>[]]']
+
+    def test_parse(self):
+        self.assertEqual(8, len(parse(self.data[0])[1]))
+        self.assertEqual('}', parse(self.data[2])[1])
+
+    def test_score_incomplete(self):
+        incomplete = []
+        for d in self.data:
+            code, res = parse(d)
+            if code == 'incomplete':
+                incomplete.append(res)
+        self.assertEqual([288957, 5566, 1480781, 995444, 294], score_incomplete(incomplete))
+
+
+def day10():
+    data = [line.strip() for line in open('day10input.txt')]
+    start_time = time.time()
+
+    keys = ['incomplete']
+    keys.extend(delims.keys())
+    results = {k: 0 for k in  keys}
+
+    incomplete = []
+
+    for d in data:
+        code, res = parse(d)
+        if code == 'corrupted':
+            results[res] += 1
+        else:
+            incomplete.append(res)
+
+    score = 0
+    for k, v in error_scores.items():
+        score += v * results[k]
+    task1 = score
+
+    task2 = statistics.median(score_incomplete(incomplete))
+
+    return time.time() - start_time, task1, task2
+
+
 # Day
 
 class DayTest(unittest.TestCase):
@@ -643,5 +781,5 @@ def run_tests():
 
 if __name__ == '__main__':
     run_tests()
-    for i in range(1, 9):
+    for i in range(1, 11):
         run(eval("day" + str(i)))
