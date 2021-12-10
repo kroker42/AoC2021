@@ -6,8 +6,8 @@ import time
 import operator
 import itertools
 import statistics
-from collections import namedtuple, Counter
-
+from collections import namedtuple, Counter, deque
+from functools import reduce
 
 # read one int per line from file
 def read_ints(fname):
@@ -611,7 +611,7 @@ def day8():
     return time.time() - start_time, task1, task2
 
 
-# Day 9 - local minima
+# Day 9 - local minima & breadth first search
 
 neighbours = [pt(-1, 0), pt(1, 0), pt(0, -1), pt(0, 1)]
 
@@ -630,17 +630,37 @@ def local_minima(m):
                 minima.append(pt(row, col))
     return minima
 
-def find_basin(p, m):
-    basin = set()
-    for n in neighbours:
-        if len(m) > p.x + n.x >= 0 and len(m[0]) > p.y + n.y >= 0 and m[p.x + n.x][p.y + n.y] != 9:
-            basin.add(pt(*tuple(map(operator.add, p, n))))
-    return basin
+def find_basin(p, m, seen):
+    queue = deque()
+    queue.append(p)
 
-def find_basins(minima, m):
-    return None
+    seen[p] = 1
+    size = 1
+
+    while len(queue) > 0:
+        s = queue.popleft()
+
+        for n in neighbours:
+            p_n = pt(s.x + n.x, s.y + n.y)
+            if p_n.x in range(len(m)) and \
+                    p_n.y in range(len(m[0])) and \
+                    p_n not in seen and \
+                    m[p_n.x][p_n.y] != 9:
+                seen[p_n] = 1
+                size += 1
+                queue.append(p_n)
+
+    return size
 
 
+def find_basins(m):
+    sizes = []
+    seen = {}
+    for r in range(len(m)):
+        for c in range(len(m[0])):
+            if m[r][c] != 9 and pt(r, c) not in seen:
+                sizes.append(find_basin(pt(r, c), m, seen))
+    return sizes
 
 
 class Day9Test(unittest.TestCase):
@@ -654,9 +674,8 @@ class Day9Test(unittest.TestCase):
     def test_local_minima(self):
         self.assertEqual([1, 0, 5, 5], [self.matrix[p.x][p.y] for p in local_minima(self.matrix)])
 
-    def test_find_basin(self):
-        self.assertEqual(2, len(find_basin(pt(0, 0), self.matrix)))
-        self.assertEqual(4, len(find_basin(pt(2, 4), self.matrix)))
+    def test_find_basins(self):
+        self.assertEqual([3, 9, 14, 9], find_basins(self.matrix))
 
 def day9():
     data = [line.strip() for line in open('day9input.txt')]
@@ -665,7 +684,10 @@ def day9():
 
     minima = local_minima(matrix)
     task1 = sum([matrix[p.x][p.y] for p in minima]) + len(minima)
-    task2 = None
+
+    sizes = find_basins(matrix)
+    sizes.sort()
+    task2 = reduce(operator.mul, sizes[-3:])
 
     return time.time() - start_time, task1, task2
 
@@ -688,7 +710,6 @@ error_scores = {')': 3, '}': 1197, '>': 25137, ']': 57}
 error_scores_incomplete = {'(': 1, '[': 2, '{': 3, '<': 4}
 
 def score_incomplete(stacks):
-    print(stacks)
     scores = []
     for stack in stacks:
         score2 = 0
