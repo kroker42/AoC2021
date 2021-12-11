@@ -774,6 +774,163 @@ def day10():
     return time.time() - start_time, task1, task2
 
 
+# Day 11 - Flashing dumbo octopie
+
+def flash_neighbours(p, step1, size):
+    flashed = {}
+    for i in [-1, 0, 1]:
+        for j in [-1, 0, 1]:
+            n = pt(p.x + i, p.y + j)
+            if n.x in size and n.y in size and n != p:
+                flashed[n] = step1[n.x][n.y] + 1 if n not in flashed else flashed[n] + 1
+
+    return flashed
+
+def flash(octopie):
+    step1 = [[x + 1 for x in list(row)] for row in octopie]
+    flashed = {}
+
+    size = range(len(step1))
+
+    for r in size:
+        for c in size:
+            if step1[r][c] > 9:
+                new_n = flash_neighbours(pt(r, c), step1, size)
+                for i in new_n:
+                    flashed[i] = flashed[i] + new_n[i] - step1[i.x][i.y] if i in flashed else new_n[i]
+
+    while sum([i > 9 for i in flashed.values()]):
+        p = next(iter(flashed))
+        n = flashed.pop(p)
+
+        if n <= 9:
+            flashed[p] = n
+        elif step1[p.x][p.y] <= 9 and n > 9:
+                step1[p.x][p.y] = 10
+                new_n = flash_neighbours(p, step1, size)
+                for i in new_n:
+                    flashed[i] = flashed[i] + new_n[i] - step1[i.x][i.y] if i in flashed else new_n[i]
+
+    res = [[0 for i in size] for j in size]
+    for r in size:
+        for c in size:
+            p = pt(r, c)
+            if p in flashed:
+                res[r][c] = flashed[p]
+            elif step1[r][c] < 10:
+                res[r][c] = step1[r][c]
+
+    return res
+
+class Day11Test(unittest.TestCase):
+    data = ['5483143223',
+            '2745854711',
+            '5264556173',
+            '6141336146',
+            '6357385478',
+            '4167524645',
+            '2176841721',
+            '6882881134',
+            '4846848554',
+            '5283751526']
+    matrix = [[int(x) for x in list(row)] for row in data]
+
+    data2 = ['11111',
+             '19991',
+             '19191',
+             '19991',
+             '11111']
+    matrix2 = [[int(x) for x in list(row)] for row in data2]
+
+    def test_flash_neighbours(self):
+        exp = {p: 2 for p in [pt(0, 0), pt(0, 1), pt(0, 2), pt(1, 0), pt(1, 2), pt(2, 0), pt(2, 2)]}
+        exp[pt(1, 2)] = 10
+        exp[pt(2, 1)] = 10
+        self.assertEqual(exp, flash_neighbours(pt(1, 1), self.matrix2, range(5)))
+
+    def test_flash(self):
+        exp = [[int(x) for x in list(row)] for row in
+               ['34543',
+                '40004',
+                '50005',
+                '40004',
+                '34543']]
+        self.assertEqual(exp, flash(self.matrix2))
+
+    def test_big_flash(self):
+        exp = [[int(x) for x in list(row)] for row in
+               ['6594254334',
+                '3856965822',
+                '6375667284',
+                '7252447257',
+                '7468496589',
+                '5278635756',
+                '3287952832',
+                '7993992245',
+                '5957959665',
+                '6394862637']]
+        actual = flash(self.matrix)
+        self.assertEqual(exp, actual)
+
+        exp2 = [[int(x) for x in list(row)] for row in
+               ['8807476555',
+                '5089087054',
+                '8597889608',
+                '8485769600',
+                '8700908800',
+                '6600088989',
+                '6800005943',
+                '0000007456',
+                '9000000876',
+                '8700006848']]
+        actual = flash(actual)
+        self.assertEqual(exp2, actual)
+
+        for i in range(8):
+            actual = flash(actual)
+
+        exp10 = [[int(x) for x in list(row)] for row in
+               ['0481112976',
+                '0031112009',
+                '0041112504',
+                '0081111406',
+                '0099111306',
+                '0093511233',
+                '0442361130',
+                '5532252350',
+                '0532250600',
+                '0032240000']]
+        self.assertEqual(exp10, actual)
+
+
+
+
+def day11():
+    data = [line.strip() for line in open('day11input.txt')]
+    octopie = [[int(x) for x in list(row)] for row in data]
+
+    start_time = time.time()
+
+    no_flashes = 0
+    for i in range(100):
+        octopie = flash(octopie)
+        zeros = [row.count(0) for row in octopie]
+        no_flashes += sum(zeros)
+
+    task1 = no_flashes
+
+    i = 100
+    zeros = []
+    while sum(zeros) < 100:
+        octopie = flash(octopie)
+        zeros = [row.count(0) for row in octopie]
+        i += 1
+
+    task2 = i
+
+    return time.time() - start_time, task1, task2
+
+
 # Day
 
 class DayTest(unittest.TestCase):
@@ -806,5 +963,5 @@ def run_tests():
 
 if __name__ == '__main__':
     run_tests()
-    for i in range(1, 11):
+    for i in range(1, 12):
         run(eval("day" + str(i)))
