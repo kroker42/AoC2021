@@ -9,6 +9,7 @@ import statistics
 from collections import namedtuple, Counter, deque
 from functools import reduce
 
+
 # read one int per line from file
 def read_ints(fname):
     return [int(line) for line in open(fname)]
@@ -290,9 +291,11 @@ def day4():
 pt = namedtuple('pt', 'x y')
 vent = namedtuple('vent', 'pt1 pt2')
 
+
 def vents(str):
     x, y = [p.strip().split(',') for p in str.split('->')]
     return vent(pt(int(x[0]), int(x[1])), pt(int(y[0]), int(y[1])))
+
 
 def add_vent_line(m, v):
     x_step = -1 if v.pt1.x > v.pt2.x else 1 if v.pt1.x < v.pt2.x else 0
@@ -322,15 +325,15 @@ def vent_map_3D(grid, m):
 
 class Day5Test(unittest.TestCase):
     input = ['0,9 -> 5,9',
-            '8,0 -> 0,8',
-            '9,4 -> 3,4',
-            '2,2 -> 2,1',
-            '7,0 -> 7,4',
-            '6,4 -> 2,0',
-            '0,9 -> 2,9',
-            '3,4 -> 1,4',
-            '0,0 -> 8,8',
-            '5,5 -> 8,2']
+             '8,0 -> 0,8',
+             '9,4 -> 3,4',
+             '2,2 -> 2,1',
+             '7,0 -> 7,4',
+             '6,4 -> 2,0',
+             '0,9 -> 2,9',
+             '3,4 -> 1,4',
+             '0,0 -> 8,8',
+             '5,5 -> 8,2']
 
     grid = [vents(x) for x in input]
 
@@ -359,7 +362,6 @@ class Day5Test(unittest.TestCase):
         self.assertEqual(1, m[pt(0, 8)])
 
 
-
 def day5():
     data = [vents(line) for line in open('day5input.txt')]
     start_time = time.time()
@@ -378,11 +380,12 @@ def day5():
 def spawn(fish):
     new_fish = []
     for f in fish:
-        new_f = (f-1) % 7 if f < 7 else f-1
+        new_f = (f - 1) % 7 if f < 7 else f - 1
         new_fish.append(new_f)
         if f == 0:
             new_fish.append(8)
     return new_fish
+
 
 def iter_fish(fish):
     new_fish = {i: 0 for i in range(9)}
@@ -394,12 +397,14 @@ def iter_fish(fish):
 
     return new_fish
 
+
 def smarter_spawn(fish, days):
     new_fish = fish
     for i in range(days):
         new_fish = iter_fish(new_fish)
 
     return new_fish
+
 
 class Day6Test(unittest.TestCase):
     data = [3, 4, 3, 1, 2]
@@ -435,6 +440,7 @@ def day6():
 
     return time.time() - start_time, task1, task2
 
+
 # Day 7 - Crab Data Centre
 
 def get_distances(crabs):
@@ -446,6 +452,7 @@ def get_distances(crabs):
                 distances[crabs[i]] += abs(c - crabs[i])
 
     return distances
+
 
 def get_weighted_distances(crabs):
     min_crab = min(crabs)
@@ -461,8 +468,8 @@ def get_weighted_distances(crabs):
 
 
 class Day7Test(unittest.TestCase):
-
     data = [16, 1, 2, 0, 4, 2, 7, 1, 2, 14]
+
     def test_get_distances(self):
         distances = get_distances(self.data)
         self.assertEqual(37, distances[2])
@@ -563,7 +570,6 @@ def get_display_number(data):
 
 
 class Day8Test(unittest.TestCase):
-
     data = ['be cfbegad cbdgef fgaecd cgeb fdcge agebfd fecdb fabcd edb | fdgacbe cefdb cefbgd gcbe',
             'edbfga begcd cbg gc gcadebf fbgde acbgfd abcde gfcbed gfec | fcgedb cgb dgebacf gc',
             'fgaebd cg bdaec gdafb agbcfd gdcbef bgcad gfac gcb cdgabef | cg cg fdcagb cbg',
@@ -591,9 +597,9 @@ class Day8Test(unittest.TestCase):
         self.assertEqual(s_m['e'], 'f')
         self.assertEqual(s_m['f'], 'g')
 
-
     def test_get_display_number(self):
-        data = get_display_numbers(['acedgfb cdfbe gcdfa fbcad dab cefabd cdfgeb eafb cagedb ab | cdfeb fcadb cdfeb cdbaf'])
+        data = get_display_numbers(
+            ['acedgfb cdfbe gcdfa fbcad dab cefabd cdfgeb eafb cagedb ab | cdfeb fcadb cdfeb cdbaf'])
         self.assertEqual(5353, get_display_number(data[0]))
 
         self.assertEqual(61229, sum([get_display_number(d) for d in self.displays]))
@@ -615,6 +621,7 @@ def day8():
 
 neighbours = [pt(-1, 0), pt(1, 0), pt(0, -1), pt(0, 1)]
 
+
 def local_minima(m):
     minima = []
 
@@ -629,6 +636,7 @@ def local_minima(m):
             if min:
                 minima.append(pt(row, col))
     return minima
+
 
 def find_basin(p, m, seen, rows, cols):
     queue = deque()
@@ -681,6 +689,7 @@ class Day9Test(unittest.TestCase):
     def test_find_basins(self):
         self.assertEqual([3, 9, 14, 9], find_basins(self.matrix))
 
+
 def day9():
     data = [line.strip() for line in open('day9input.txt')]
     matrix = [[int(x) for x in list(row)] for row in data]
@@ -699,6 +708,7 @@ def day9():
 # Day 10 - syntax checker
 delims = {')': '(', '}': '{', '>': '<', ']': '['}
 
+
 def parse(line):
     stack = []
     for c in line:
@@ -710,8 +720,10 @@ def parse(line):
 
     return 'incomplete', stack
 
+
 error_scores = {')': 3, '}': 1197, '>': 25137, ']': 57}
 error_scores_incomplete = {'(': 1, '[': 2, '{': 3, '<': 4}
+
 
 def score_incomplete(stacks):
     scores = []
@@ -721,6 +733,7 @@ def score_incomplete(stacks):
             score2 = score2 * 5 + error_scores_incomplete[d]
         scores.append(score2)
     return scores
+
 
 class Day10Test(unittest.TestCase):
     data = ['[({(<(())[]>[[{[]{<()<>>',
@@ -753,7 +766,7 @@ def day10():
 
     keys = ['incomplete']
     keys.extend(delims.keys())
-    results = {k: 0 for k in  keys}
+    results = {k: 0 for k in keys}
 
     incomplete = []
 
@@ -783,8 +796,8 @@ def flash_neighbours(p, step1, size):
             n = pt(p.x + i, p.y + j)
             if n.x in size and n.y in size and n != p:
                 flashed[n] = step1[n.x][n.y] + 1 if n not in flashed else flashed[n] + 1
-
     return flashed
+
 
 def flash(octopie):
     step1 = [[x + 1 for x in list(row)] for row in octopie]
@@ -805,12 +818,13 @@ def flash(octopie):
 
         if n <= 9:
             flashed[p] = n
-        elif step1[p.x][p.y] <= 9 and n > 9:
-                step1[p.x][p.y] = 10
-                new_n = flash_neighbours(p, step1, size)
-                for i in new_n:
-                    flashed[i] = flashed[i] + new_n[i] - step1[i.x][i.y] if i in flashed else new_n[i]
+        elif step1[p.x][p.y] <= 9:
+            step1[p.x][p.y] = 10
+            new_n = flash_neighbours(p, step1, size)
+            for i in new_n:
+                flashed[i] = flashed[i] + new_n[i] - step1[i.x][i.y] if i in flashed else new_n[i]
 
+    # update octopie
     res = [[0 for i in size] for j in size]
     for r in size:
         for c in size:
@@ -821,6 +835,7 @@ def flash(octopie):
                 res[r][c] = step1[r][c]
 
     return res
+
 
 class Day11Test(unittest.TestCase):
     data = ['5483143223',
@@ -873,16 +888,16 @@ class Day11Test(unittest.TestCase):
         self.assertEqual(exp, actual)
 
         exp2 = [[int(x) for x in list(row)] for row in
-               ['8807476555',
-                '5089087054',
-                '8597889608',
-                '8485769600',
-                '8700908800',
-                '6600088989',
-                '6800005943',
-                '0000007456',
-                '9000000876',
-                '8700006848']]
+                ['8807476555',
+                 '5089087054',
+                 '8597889608',
+                 '8485769600',
+                 '8700908800',
+                 '6600088989',
+                 '6800005943',
+                 '0000007456',
+                 '9000000876',
+                 '8700006848']]
         actual = flash(actual)
         self.assertEqual(exp2, actual)
 
@@ -890,19 +905,17 @@ class Day11Test(unittest.TestCase):
             actual = flash(actual)
 
         exp10 = [[int(x) for x in list(row)] for row in
-               ['0481112976',
-                '0031112009',
-                '0041112504',
-                '0081111406',
-                '0099111306',
-                '0093511233',
-                '0442361130',
-                '5532252350',
-                '0532250600',
-                '0032240000']]
+                 ['0481112976',
+                  '0031112009',
+                  '0041112504',
+                  '0081111406',
+                  '0099111306',
+                  '0093511233',
+                  '0442361130',
+                  '5532252350',
+                  '0532250600',
+                  '0032240000']]
         self.assertEqual(exp10, actual)
-
-
 
 
 def day11():
@@ -931,6 +944,102 @@ def day11():
     return time.time() - start_time, task1, task2
 
 
+# Day 12 - bidirectional graph
+
+class Node:
+    def __init__(self, name, is_big):
+        self.name = name
+        self.is_big_cave = is_big
+        self.neighbours = []
+
+
+class BDG:
+    def __init__(self, deps):
+        self.nodes = {}
+        for dep in deps:
+            self.addDependency(dep[0], dep[1])
+
+    def addDependency(self, n1, n2):
+        if n1 not in self.nodes:
+            self.nodes[n1] = Node(n1, n1.isupper())
+        if n2 not in self.nodes:
+            self.nodes[n2] = Node(n2, n2.isupper())
+
+        self.nodes[n1].neighbours.append(self.nodes[n2])
+        self.nodes[n2].neighbours.append(self.nodes[n1])
+
+    def find_paths(self):
+        paths = [[self.nodes['start']]]
+        full_paths = []
+
+        while paths:
+            new_paths = []
+            for p in paths:
+                for n in p[-1].neighbours:
+                    if n not in p or n.is_big_cave:
+                        if n.name == 'end':
+                            full_paths.append(p + [n])
+                        else:
+                            new_paths.append(p + [n])
+            paths = new_paths
+
+        return full_paths
+
+    def find_paths2(self):
+        paths = [[self.nodes['start']]]
+        full_paths = []
+
+        while paths:
+            new_paths = []
+            for p in paths:
+                for n in p[-1].neighbours:
+                    if n not in p or n.is_big_cave:
+                        if n.name == 'end':
+                            full_paths.append(p + [n])
+                        else:
+                            new_paths.append(p + [n])
+                    elif n.name != 'start' and len(set([x for x in p if not x.is_big_cave])) == len([x for x in p if not x.is_big_cave]):
+                        new_paths.append(p + [n])
+            paths = new_paths
+
+        return full_paths
+
+
+class Day12Test(unittest.TestCase):
+    data = [dep.split('-') for dep in ['start-A',
+                                       'start-b',
+                                       'A-c',
+                                       'A-b',
+                                       'b-d',
+                                       'A-end',
+                                       'b-end']]
+
+    def test_BDG(self):
+        graph = BDG(self.data)
+        self.assertEqual(False, graph.nodes['start'].is_big_cave)
+        self.assertEqual(True, graph.nodes['A'].is_big_cave)
+        self.assertEqual(['start', 'c', 'b', 'end'], [x.name for x in graph.nodes['A'].neighbours])
+
+    def test_find_paths(self):
+        paths = BDG(self.data).find_paths()
+        self.assertEqual(10, len(paths))
+
+    def test_find_paths2(self):
+        paths = BDG(self.data).find_paths2()
+        self.assertEqual(36, len(paths))
+
+
+def day12():
+    data = [line.strip().split('-') for line in open('day12input.txt')]
+
+    start_time = time.time()
+
+    task1 = len(BDG(data).find_paths())
+    task2 = len(BDG(data).find_paths2())
+
+    return time.time() - start_time, task1, task2
+
+
 # Day
 
 class DayTest(unittest.TestCase):
@@ -948,6 +1057,7 @@ def day():
 
     return time.time() - start_time, task1, task2
 
+
 def run(day):
     run_time, task1, task2 = day()
     print(day.__name__ + ": %.6s s - " % run_time + str(task1) + " " + str(task2))
@@ -963,5 +1073,5 @@ def run_tests():
 
 if __name__ == '__main__':
     run_tests()
-    for i in range(1, 12):
+    for i in range(1, 13):
         run(eval("day" + str(i)))
