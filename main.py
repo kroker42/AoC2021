@@ -1040,9 +1040,77 @@ def day12():
     return time.time() - start_time, task1, task2
 
 
+# Day 13
+def fold_vertical(line, paper):
+    folded = set()
+    for x, y in paper:
+        if y > line:
+            folded.add((x, 2 * line - y))
+        else:
+            folded.add((x, y))
+    return folded
+
+def fold_horizontal(line, paper):
+    folded = set()
+    for x, y in paper:
+        if x > line:
+            folded.add((2 * line - x, y))
+        else:
+            folded.add((x, y))
+    return folded
+
+class Day13Test(unittest.TestCase):
+    data = [[int(y) for y in x.split(',')] for x in ['6,10','0,14','9,10','0,3','10,4','4,11','6,0','6,12',
+            '4,1','0,13','10,12','3,4','3,0','8,4','1,10','2,14','8,10','9,0']]
+    folds = [('y', 7), ('x', 5)]
+
+    def test_fold(self):
+        folded = fold_vertical(7, self.data)
+        self.assertEqual(True, (0, 0) in folded)
+        folded = fold_horizontal(5, self.data)
+        self.assertEqual(True, (4, 0) in folded)
+
+
+def day13():
+    lines = open('day13input.txt').readlines()
+
+    paper = []
+    folds = []
+
+    for line in lines:
+        if line[0] == 'f':
+            folds.append(line.strip().split(' ')[2].split('='))
+        elif len(line) > 1:
+            paper.append([int(y) for y in line.strip().split(',')])
+
+    start_time = time.time()
+
+    task1 = len(fold_horizontal(655, paper))
+
+    for d, l in folds:
+        l = int(l)
+        if d == 'x':
+            paper = fold_horizontal(l, paper)
+        else:
+            paper = fold_vertical(l, paper)
+
+    text = [[' '] * 40 for x in range(6)]
+
+    for dot in paper:
+        text[dot[1]][dot[0]] = '#'
+
+    for line in text:
+        print(line)
+
+    task2 = None
+
+    return time.time() - start_time, task1, task2
+
+
 # Day
 
 class DayTest(unittest.TestCase):
+    data = []
 
     def test_(self):
         self.assertEqual(True, True)
@@ -1073,5 +1141,5 @@ def run_tests():
 
 if __name__ == '__main__':
     run_tests()
-    for i in range(1, 13):
+    for i in range(1, 14):
         run(eval("day" + str(i)))
