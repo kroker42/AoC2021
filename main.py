@@ -1107,6 +1107,93 @@ def day13():
     return time.time() - start_time, task1, task2
 
 
+# Day 14 - pairwise insertion
+
+def insert_pairs(polymer, rules):
+    freq = {}
+    for x in polymer:
+        freq[x] = freq[x] + 1 if x in freq else 1
+
+    result = []
+    for i in range(len(polymer) - 1):
+        result.append(polymer[i])
+        e = rules[''.join(polymer[i:i+2])]
+        result.append(e)
+        freq[e] = freq[e] + 1 if e in freq else 1
+
+    result.append(polymer[-1])
+    return result, freq
+
+def grow_polymer(pairs, freq, rules):
+    new_pairs = {}
+    for p in pairs:
+        e = rules[p]
+        new_pairs[p[0] + e] = new_pairs[p[0] + e] + pairs[p] if p[0] + e in new_pairs else pairs[p]
+        new_pairs[e + p[1]] = new_pairs[e + p[1]] + pairs[p] if e + p[1] in new_pairs else pairs[p]
+        freq[e] = freq[e] + pairs[p] if e in freq else pairs[p]
+
+    return new_pairs, freq
+
+def insert_pairs2(polymer, rules):
+    freq = {}
+    pairs = {}
+
+    for i in range(len(polymer) - 1):
+        p = ''.join(polymer[i:i + 2])
+        pairs[p] = pairs[p] + 1 if p in pairs else 1
+        freq[polymer[i]] = freq[polymer[i]] + 1 if polymer[i] in freq else 1
+
+    freq[polymer[-1]] = freq[polymer[-1]] + 1 if polymer[-1] in freq else 1
+
+    return pairs, freq
+
+class Day14Test(unittest.TestCase):
+    data = ['CH -> B', 'HH -> N',
+            'CB -> H', 'NH -> C',
+            'HB -> C', 'HC -> B',
+            'HN -> C', 'NN -> C',
+            'BH -> H', 'NC -> B',
+            'NB -> B', 'BN -> B',
+            'BB -> N', 'BC -> B',
+            'CC -> N', 'CN -> C']
+
+    rules = {x: y for x, y in [line.split(' -> ') for line in data]}
+
+    def test_insert_pairs(self):
+        polymer, freq = insert_pairs(list('NNCB'), self.rules)
+        self.assertEqual(list('NCNBCHB'), polymer)
+        self.assertEqual(2, freq['N'])
+        self.assertEqual(1, freq['H'])
+
+    def test_many_iters(self):
+        pairs, freq = insert_pairs2(list('NNCB'), self.rules)
+        for i in range(40):
+            pairs, freq = grow_polymer(pairs, freq, self.rules)
+        self.assertEqual(2192039569602, max(freq.values()))
+        self.assertEqual(3849876073, min(freq.values()))
+
+
+def day14():
+    lines = open('day14input.txt').readlines()
+    polymer = list(lines[0].strip())
+    rules = {x: y for x, y in [line.strip().split(' -> ') for line in lines[2:]]}
+
+    start_time = time.time()
+
+    p1 = polymer.copy()
+    for i in range(10):
+        p1, freq1 = insert_pairs(p1, rules)
+
+    task1 = max(freq1.values()) - min(freq1.values())
+
+    pairs, freq2 = insert_pairs2(polymer, rules)
+    for i in range(40):
+        pairs, freq2 = grow_polymer(pairs, freq2, rules)
+    task2 = max(freq2.values()) - min(freq2.values())
+
+    return time.time() - start_time, task1, task2
+
+
 # Day
 
 class DayTest(unittest.TestCase):
@@ -1141,5 +1228,5 @@ def run_tests():
 
 if __name__ == '__main__':
     run_tests()
-    for i in range(1, 14):
+    for i in range(1, 15):
         run(eval("day" + str(i)))
