@@ -959,14 +959,19 @@ class BDG:
         for dep in deps:
             self.addDependency(dep[0], dep[1])
 
-    def addDependency(self, n1, n2):
-        if n1 not in self.nodes:
-            self.nodes[n1] = Node(n1, n1.isupper())
-        if n2 not in self.nodes:
-            self.nodes[n2] = Node(n2, n2.isupper())
+    def __add_node__(self, n):
+        if n not in self.nodes:
+            self.nodes[n] = Node(n, n.isupper())
 
+    def __add_dependency__(self, n1, n2):
         self.nodes[n1].neighbours.append(self.nodes[n2])
-        self.nodes[n2].neighbours.append(self.nodes[n1])
+
+    def addDependency(self, n1, n2):
+        self.__add_node__(n1)
+        self.__add_node__(n2)
+
+        self.__add_dependency__(n1, n2)
+        self.__add_dependency__(n2, n1)
 
     def find_paths(self):
         paths = [[self.nodes['start']]]
@@ -976,11 +981,10 @@ class BDG:
             new_paths = []
             for p in paths:
                 for n in p[-1].neighbours:
-                    if n not in p or n.is_big_cave:
-                        if n.name == 'end':
-                            full_paths.append(p + [n])
-                        else:
-                            new_paths.append(p + [n])
+                    if n.name == 'end':
+                        full_paths.append(p + [n])
+                    elif n not in p or n.is_big_cave:
+                        new_paths.append(p + [n])
             paths = new_paths
 
         return full_paths
@@ -993,13 +997,14 @@ class BDG:
             new_paths = []
             for p in paths:
                 for n in p[-1].neighbours:
-                    if n not in p or n.is_big_cave:
-                        if n.name == 'end':
-                            full_paths.append(p + [n])
-                        else:
-                            new_paths.append(p + [n])
-                    elif n.name != 'start' and len(set([x for x in p if not x.is_big_cave])) == len([x for x in p if not x.is_big_cave]):
+                    if n.name == 'end':
+                        full_paths.append(p + [n])
+                    elif n.is_big_cave or n not in p:
                         new_paths.append(p + [n])
+                    elif n.name != 'start':
+                        small_caves = [x for x in p if not x.is_big_cave]
+                        if len(set(small_caves)) == len(small_caves):
+                            new_paths.append(p + [n])
             paths = new_paths
 
         return full_paths
@@ -1044,19 +1049,15 @@ def day12():
 def fold_vertical(line, paper):
     folded = set()
     for x, y in paper:
-        if y > line:
-            folded.add((x, 2 * line - y))
-        else:
-            folded.add((x, y))
+        y = 2 * line - y if y > line else y
+        folded.add((x, y))
     return folded
 
 def fold_horizontal(line, paper):
     folded = set()
     for x, y in paper:
-        if x > line:
-            folded.add((2 * line - x, y))
-        else:
-            folded.add((x, y))
+        x = 2 * line - x if x > line else x
+        folded.add((x, y))
     return folded
 
 class Day13Test(unittest.TestCase):
@@ -1112,14 +1113,14 @@ def day13():
 def insert_pairs(polymer, rules):
     freq = {}
     for x in polymer:
-        freq[x] = freq[x] + 1 if x in freq else 1
+        freq[x] = freq.get(x, 0) + 1
 
     result = []
     for i in range(len(polymer) - 1):
         result.append(polymer[i])
         e = rules[''.join(polymer[i:i+2])]
         result.append(e)
-        freq[e] = freq[e] + 1 if e in freq else 1
+        freq[e] = freq.get(e, 0) + 1
 
     result.append(polymer[-1])
     return result, freq
@@ -1128,9 +1129,9 @@ def grow_polymer(pairs, freq, rules):
     new_pairs = {}
     for p in pairs:
         e = rules[p]
-        new_pairs[p[0] + e] = new_pairs[p[0] + e] + pairs[p] if p[0] + e in new_pairs else pairs[p]
-        new_pairs[e + p[1]] = new_pairs[e + p[1]] + pairs[p] if e + p[1] in new_pairs else pairs[p]
-        freq[e] = freq[e] + pairs[p] if e in freq else pairs[p]
+        new_pairs[p[0] + e] = new_pairs.get(p[0] + e, 0) + pairs[p]
+        new_pairs[e + p[1]] = new_pairs.get(e + p[1], 0) + pairs[p]
+        freq[e] = freq.get(e, 0) + pairs[p]
 
     return new_pairs, freq
 
@@ -1140,10 +1141,10 @@ def insert_pairs2(polymer, rules):
 
     for i in range(len(polymer) - 1):
         p = ''.join(polymer[i:i + 2])
-        pairs[p] = pairs[p] + 1 if p in pairs else 1
-        freq[polymer[i]] = freq[polymer[i]] + 1 if polymer[i] in freq else 1
+        pairs[p] = pairs.get(p, 0) + 1
+        freq[polymer[i]] = freq.get(polymer[i], 0) + 1
 
-    freq[polymer[-1]] = freq[polymer[-1]] + 1 if polymer[-1] in freq else 1
+    freq[polymer[-1]] = freq.get(polymer[-1], 0) + 1
 
     return pairs, freq
 
