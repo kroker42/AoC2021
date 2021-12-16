@@ -1053,6 +1053,7 @@ def fold_vertical(line, paper):
         folded.add((x, y))
     return folded
 
+
 def fold_horizontal(line, paper):
     folded = set()
     for x, y in paper:
@@ -1060,9 +1061,11 @@ def fold_horizontal(line, paper):
         folded.add((x, y))
     return folded
 
+
 class Day13Test(unittest.TestCase):
-    data = [[int(y) for y in x.split(',')] for x in ['6,10','0,14','9,10','0,3','10,4','4,11','6,0','6,12',
-            '4,1','0,13','10,12','3,4','3,0','8,4','1,10','2,14','8,10','9,0']]
+    data = [[int(y) for y in x.split(',')] for x in ['6,10', '0,14', '9,10', '0,3', '10,4', '4,11', '6,0', '6,12',
+                                                     '4,1', '0,13', '10,12', '3,4', '3,0', '8,4', '1,10', '2,14',
+                                                     '8,10', '9,0']]
     folds = [('y', 7), ('x', 5)]
 
     def test_fold(self):
@@ -1118,12 +1121,13 @@ def insert_pairs(polymer, rules):
     result = []
     for i in range(len(polymer) - 1):
         result.append(polymer[i])
-        e = rules[''.join(polymer[i:i+2])]
+        e = rules[''.join(polymer[i:i + 2])]
         result.append(e)
         freq[e] = freq.get(e, 0) + 1
 
     result.append(polymer[-1])
     return result, freq
+
 
 def grow_polymer(pairs, freq, rules):
     new_pairs = {}
@@ -1134,6 +1138,7 @@ def grow_polymer(pairs, freq, rules):
         freq[e] = freq.get(e, 0) + pairs[p]
 
     return new_pairs, freq
+
 
 def insert_pairs2(polymer, rules):
     freq = {}
@@ -1147,6 +1152,7 @@ def insert_pairs2(polymer, rules):
     freq[polymer[-1]] = freq.get(polymer[-1], 0) + 1
 
     return pairs, freq
+
 
 class Day14Test(unittest.TestCase):
     data = ['CH -> B', 'HH -> N',
@@ -1195,6 +1201,91 @@ def day14():
     return time.time() - start_time, task1, task2
 
 
+# Day 15 - Dynamic Programming for shortest path in DAG
+
+dag_neighbours = [(1, 0), (0, 1)]
+
+def neighbour_paths(p, paths):
+    neighbour_paths = []
+
+    for n in dag_neighbours:
+        neighbour = tuple(x + y for x, y in zip(p, n))
+        if neighbour in paths:
+            neighbour_paths.append(paths[neighbour])
+
+    return neighbour_paths
+
+def shortest_path(m):
+    paths = {}
+
+    for row in reversed(range(len(m))):
+        for col in reversed(range(len(m[0]))):
+            neighbours = neighbour_paths((row, col), paths)
+            shortest = min(neighbours) if neighbours else 0
+            paths[(row, col)] = m[row][col] + shortest
+
+    return paths[(0, 0)]
+
+def increment_matrix(m, n):
+    return [[x % 9 + n for x in row] for row in m]
+
+
+class Day15Test(unittest.TestCase):
+    data = [[int(y) for y in x] for x in
+            ['1163751742',
+             '1381373672',
+             '2136511328',
+             '3694931569',
+             '7463417111',
+             '1319128137',
+             '1359912421',
+             '3125421639',
+             '1293138521',
+             '2311944581']]
+
+    def test_neighbour_paths(self):
+        self.assertEqual([3, 2], neighbour_paths((2, 3), {(3, 3): 3, (2, 4): 2}))
+
+    def test_shortest_paths(self):
+        self.assertEqual(41, shortest_path(self.data))
+
+    def test_increment_m(self):
+        m = increment_matrix(self.data, 1)
+        self.assertEqual(2, m[0][0])
+        self.assertEqual(1, m[3][2])
+
+
+def day15():
+    lines = open('day15input.txt').readlines()
+    m = [[int(y) for y in x.strip()] for x in lines]
+
+    start_time = time.time()
+
+    task1 = shortest_path(m) - m[0][0]
+
+    task2 = None
+
+    return time.time() - start_time, task1, task2
+
+
+# Day 16
+
+class Day16Test(unittest.TestCase):
+    data = []
+
+    def test_(self):
+        self.assertEqual(True, True)
+
+
+def day16():
+    data = [line.split() for line in open('dayinput.txt')]
+    start_time = time.time()
+
+    task1 = None
+    task2 = None
+
+    return time.time() - start_time, task1, task2
+
 # Day
 
 class DayTest(unittest.TestCase):
@@ -1229,5 +1320,5 @@ def run_tests():
 
 if __name__ == '__main__':
     run_tests()
-    for i in range(1, 15):
+    for i in range(14, 16):
         run(eval("day" + str(i)))
